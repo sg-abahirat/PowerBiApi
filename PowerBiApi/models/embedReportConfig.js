@@ -12,4 +12,13 @@ class PowerBiReportDetails {
     }
 }
 
+class PowerBiDashboardDetails {
+    constructor(dashboardId, Name, embedUrl) {
+        this.dashboardId = dashboardId;
+        this.Name = Name;
+        this.embedUrl = embedUrl;
+    }
+}
+
 module.exports = PowerBiReportDetails;
+module.exports=PowerBiDashboardDetails;

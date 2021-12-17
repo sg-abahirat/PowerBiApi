@@ -7,6 +7,7 @@ const auth = require(__dirname + "/authentication.js");
 const config = require(__dirname + "/../config/config.json");
 const utils = require(__dirname + "/utils.js");
 const PowerBiReportDetails = require(__dirname + "/../models/embedReportConfig.js");
+const PowerBidashboardDetails = require(__dirname + "/../models/embedReportConfig.js");
 const EmbedConfig = require(__dirname + "/../models/embedConfig.js");
 const fetch = require('node-fetch');
 const request = require('request');
@@ -21,7 +22,7 @@ async function getEmbedInfo() {
     try {
 
         // Get report details and embed token
-        const embedParams = await getEmbedParamsForSingleReport(config.workspaceId, config.reportId);
+        const embedParams = await getEmbedParamsForSingleReport("1","0");
 
         return {
             'accessToken': embedParams.embedToken.token,
@@ -45,10 +46,13 @@ async function getEmbedInfo() {
  * @return EmbedConfig object
  */
 async function getEmbedParamsForSingleReport(workspaceId, reportId, additionalDatasetId) {
+    workspaceId='8d6e16db-4fd4-4e8b-819f-9087b0a1a8b3';
+    reportId='8940a74e-f620-443b-aa70-8fc19876201b';
     const reportInGroupApi = `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/reports/${reportId}`;
     const headers = await getRequestHeader();
 
-    // var test=getReportEmbedToken(headers.Authorization,workspaceId,reportId);
+     var test=headers.Authorization;
+     headers.Authorization= "Bearer ".concat(test)
     // Get report info by calling the PowerBI REST API
     const result = await fetch(reportInGroupApi, {
         method: 'GET',
@@ -61,7 +65,7 @@ async function getEmbedParamsForSingleReport(workspaceId, reportId, additionalDa
 
     // Convert result in json to retrieve values
     const resultJson = await result.json();
-
+   // return resultJson;
     // Add report data for embedding
     const reportDetails = new PowerBiReportDetails(resultJson.id, resultJson.name, resultJson.embedUrl);
     const reportEmbedConfig = new EmbedConfig();
@@ -78,15 +82,38 @@ async function getEmbedParamsForSingleReport(workspaceId, reportId, additionalDa
     }
 
     // Get Embed token multiple resources
-    reportEmbedConfig.embedToken = await getEmbedTokenForSingleReportSingleWorkspace(reportId, datasetIds, workspaceId);
+    //reportEmbedConfig.embedToken =await getEmbedTokenForSingleReportSingleWorkspace(reportId, datasetIds, workspaceId);
+    reportEmbedConfig.embedToken=await getReportEmbedToken(test,'reports',workspaceId,reportId) //
+    // reportEmbedConfig.embedToken.token;
     return reportEmbedConfig;
+    //return resultJson.value;
 }
 
-const getReportEmbedToken = function (accessToken, groupId, reportId) {
+async function getReportByID(workspaceId,reportId){
+    const reportInGroupApi = `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/reports/${reportId}`;
+    const headers = await getRequestHeader();
+
+    var accesstoken=headers.Authorization;
+     headers.Authorization= "Bearer ".concat(headers.Authorization)
+    // Get report info by calling the PowerBI REST API
+    const result = await fetch(reportInGroupApi, {
+        method: 'GET',
+        headers: headers,
+    })
+
+    if (!result.ok) {
+        throw result;
+    }
+    const resultJson = await result.json();
+    var embedToken=await getReportEmbedToken(accesstoken,'reports',workspaceId,reportId)
+    resultJson.accessToken=embedToken.token;
+    return  resultJson;
+}
+const getReportEmbedToken = async function (accessToken,itemCategory, groupId, reportId) {
 
     return new Promise(function (resolve, reject) {
-    
-        const url = 'https://api.powerbi.com/v1.0/myorg/groups/' + groupId + '/reports/' + reportId;
+    // reportId="16f21b21-d0ed-46e4-8cc2-9f5219e2c380";
+        const url = `https://api.powerbi.com/v1.0/myorg/groups/${groupId}/${itemCategory}/${reportId}/GenerateToken`;
     
         const headers = {
     
@@ -104,10 +131,8 @@ const getReportEmbedToken = function (accessToken, groupId, reportId) {
     
         request.post({
     
-            url: url,
-    
-            form: formData,
-    
+            url: url,   
+            form:formData,
             headers: headers
     
         }, function (err, result, body) {
@@ -116,7 +141,7 @@ const getReportEmbedToken = function (accessToken, groupId, reportId) {
     
             const bodyObj = JSON.parse(body);
     
-            resolve(bodyObj.token);
+            resolve(bodyObj);
     
         });
     
@@ -124,6 +149,46 @@ const getReportEmbedToken = function (accessToken, groupId, reportId) {
     
     };
 
+async function getGroups(){
+    const reportInGroupApi = `https://api.powerbi.com/v1.0/myorg/groups`;
+    ///${workspaceId}/reports/${reportId}`
+    const headers = await getRequestHeader();
+
+     headers.Authorization= "Bearer ".concat(headers.Authorization);
+    // Get report info by calling the PowerBI REST API
+    const result = await fetch(reportInGroupApi, {
+        method: 'GET',
+        headers: headers,
+    })
+
+    if (!result.ok) {
+        throw result;
+    }
+
+    // Convert result in json to retrieve values
+    const resultJson = await result.json();
+    return  resultJson.value;
+}
+async function getReportFromSpecificGroup(workspaceId){
+    const reportInGroupApi = `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/reports`;
+    ///${workspaceId}/reports/${reportId}`
+    const headers = await getRequestHeader();
+
+     headers.Authorization= "Bearer ".concat(headers.Authorization);
+    // Get report info by calling the PowerBI REST API
+    const result = await fetch(reportInGroupApi, {
+        method: 'GET',
+        headers: headers,
+    })
+
+    if (!result.ok) {
+        throw result;
+    }
+
+    // Convert result in json to retrieve values
+    const resultJson = await result.json();
+    return  resultJson.value;
+}
 /**
  * Get embed params for multiple reports for a single workspace
  * @param {string} workspaceId
@@ -365,5 +430,8 @@ async function getRequestHeader() {
 }
 
 module.exports = {
-    getEmbedInfo: getEmbedInfo
+    getEmbedInfo: getEmbedInfo,
+    getGroups:getGroups,
+    getReportFromSpecificGroup:getReportFromSpecificGroup,
+    getReportByID:getReportByID
 }

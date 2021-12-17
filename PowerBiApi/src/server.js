@@ -44,5 +44,25 @@ app.get('/getEmbedToken', async function (req, res) {
     // result.status specified the statusCode that will be sent along with the result object
     res.status(result.status).send(result);
 });
+app.get('/getGroups', async function (req, res) {
+    let result = await embedToken.getGroups();
+
+    // result.status specified the statusCode that will be sent along with the result object
+    res.send(result);
+});
+app.get('/getReportByID', async function (req, res) {
+    let result = await embedToken.getReportByID(req.body.workspaceid,req.body.reportid);
+
+    // result.status specified the statusCode that will be sent along with the result object
+    res.send(result);
+});
+
+app.get('/getReportFromSpecificGroup', async function (req, res) {
+    // Get the details like Embed URL, Access token and Expiry
+    let result = await embedToken.getReportFromSpecificGroup(req.body.workspaceid);
+
+    // result.status specified the statusCode that will be sent along with the result object
+    res.send(result);
+});
 
 app.listen(port, () => console.log(`Listening on port ${port}`));

@@ -18,7 +18,6 @@ $.ajax({
 
         // Create a config object with type of the object, Embed details and Token Type
         let reportLoadConfig = {
-            type: "report",
             tokenType: models.TokenType.Embed,
             accessToken: embedData.accessToken,
 
@@ -36,7 +35,8 @@ $.ajax({
         tokenExpiry = embedData.expiry;
 
         // Embed Power BI report when Access token and Embed URL are available
-        let report = powerbi.embed(reportContainer, reportLoadConfig);
+        let report = powerbi.embed(reportContainer,reportLoadConfig);
+        //let report=powerbi.embedData(reportLoadConfig);
 
         // Clear any other loaded handler events
         report.off("loaded");

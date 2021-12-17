@@ -1,5 +1,5 @@
 {
-    "authenticationMode": "ServicePrincipal",
+    "authenticationMode": "serviceprincipal",
     "authorityUri": "https://login.microsoftonline.com/common",
      "scope": "https://analysis.windows.net/powerbi/api",
     "apiUrl": "api://c5940573-585c-4c5a-9a92-bc7fa857fac4.com",
